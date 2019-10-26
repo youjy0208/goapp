@@ -23,3 +23,9 @@ replace (
 	google.golang.org/genproto => github.com/google/go-genproto v0.0.0-20190502173448-54afdca5d873
 	google.golang.org/grpc => github.com/grpc/grpc-go v1.20.1
 )
+
+require (
+	github.com/it234/goapp/internal v0.0.0-00010101000000-000000000000
+	github.com/it234/goapp/pkg v0.0.0-00010101000000-000000000000 // indirect
+	gopkg.in/yaml.v2 v2.2.4 // indirect
+)

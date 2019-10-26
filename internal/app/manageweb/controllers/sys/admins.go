@@ -5,6 +5,7 @@ import (
 	models "github.com/it234/goapp/internal/pkg/models/common"
 	"github.com/it234/goapp/internal/pkg/models/sys"
 	"github.com/it234/goapp/pkg/hash"
+	"github.com/it234/goapp/pkg/random"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,7 +44,7 @@ func (Admins) List(c *gin.Context) {
 		whereOrder = append(whereOrder, models.PageWhereOrder{Where: "status = ?", Value: arr})
 	}
 	var total uint64
-	list:= []sys.Admins{}
+	list := []sys.Admins{}
 	err := models.GetPage(&sys.Admins{}, &sys.Admins{}, &list, page, limit, &total, whereOrder...)
 	if err != nil {
 		common.ResErrSrv(c, err)
@@ -101,7 +102,9 @@ func (Admins) Create(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
-	model.Password = hash.Md5String(common.MD5_PREFIX + model.Password)
+	model.Salt = random.RandString(8)
+	model.Status = 1
+	model.Password = hash.Md5String(model.Salt + model.Password)
 	err = models.Create(&model)
 	if err != nil {
 		common.ResFail(c, "操作失败")
@@ -118,8 +121,8 @@ func (Admins) Delete(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
-	admin:=sys.Admins{}
-  err = admin.Delete(ids)
+	admin := sys.Admins{}
+	err = admin.Delete(ids)
 	if err != nil {
 		common.ResErrSrv(c, err)
 		return
@@ -158,5 +161,3 @@ func (Admins) SetRole(c *gin.Context) {
 	go common.CsbinAddRoleForUser(adminsid)
 	common.ResSuccessMsg(c)
 }
-
-

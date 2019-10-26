@@ -12,6 +12,7 @@ import (
 	"github.com/it234/goapp/pkg/hash"
 	"github.com/it234/goapp/pkg/jwt"
 	"github.com/it234/goapp/pkg/logger"
+	"github.com/it234/goapp/pkg/random"
 	"github.com/it234/goapp/pkg/util"
 
 	linq "github.com/ahmetb/go-linq"
@@ -39,24 +40,32 @@ func (User) Login(c *gin.Context) {
 		common.ResFail(c, "用户名或密码不能为空")
 		return
 	}
-	password = hash.Md5String(common.MD5_PREFIX + password)
-	where := sys.Admins{UserName: username, Password: password}
+
+	where := sys.Admins{UserName: username}
 	user := sys.Admins{}
-	if username == "admin" && password == "900963658df8cd586cf9f31fe665acf7" {
-		user.ID = common.SUPER_ADMIN_ID
-		user.Status = 1
-	} else {
-		notFound, err := models.First(&where, &user)
-		if err != nil {
-			if notFound {
-				common.ResFail(c, "用户名或密码错误")
-				return
-			}
-			common.ResErrSrv(c, err)
-			logger.Error(err)
+	notFound, err := models.First(&where, &user)
+	if err != nil {
+		if notFound {
+			common.ResFail(c, "用户名或密码错误")
 			return
 		}
+		common.ResErrSrv(c, err)
+		logger.Error(err)
+		return
 	}
+
+	// 判断密码是否一致，密码由salt+md5
+	dbPassword := hash.Md5String(user.Salt + password)
+	if dbPassword != user.Password {
+		common.ResFail(c, "用户名或密码错误")
+		return
+	}
+
+	if username == "admin" {
+		user.ID = common.SUPER_ADMIN_ID
+		user.Status = 1
+	}
+
 	if user.Status != 1 {
 		common.ResFail(c, "该用户已被禁用")
 		return
@@ -215,27 +224,27 @@ func (User) Info(c *gin.Context) {
 			return
 		}
 		if len(menuData) == 0 {
-			menuModelTop := sys.Menu{Status: 1, ParentID: 0, URL: "", Name: "TOP", Sequence: 1, MenuType: 1, Code: "TOP",OperateType:"none"}
+			menuModelTop := sys.Menu{Status: 1, ParentID: 0, URL: "", Name: "TOP", Sequence: 1, MenuType: 1, Code: "TOP", OperateType: "none"}
 			models.Create(&menuModelTop)
-			menuModelSys := sys.Menu{Status: 1, ParentID: menuModelTop.ID, URL: "", Name: "系统管理", Sequence: 1, MenuType: 1, Code: "Sys",Icon:"lock",OperateType:"none"}
+			menuModelSys := sys.Menu{Status: 1, ParentID: menuModelTop.ID, URL: "", Name: "系统管理", Sequence: 1, MenuType: 1, Code: "Sys", Icon: "lock", OperateType: "none"}
 			models.Create(&menuModelSys)
-			menuModel := sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/icon", Name: "图标管理", Sequence: 10, MenuType: 2, Code: "Icon",Icon:"icon",OperateType:"none"}
+			menuModel := sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/icon", Name: "图标管理", Sequence: 10, MenuType: 2, Code: "Icon", Icon: "icon", OperateType: "none"}
 			models.Create(&menuModel)
-			menuModel = sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/menu", Name: "菜单管理", Sequence: 20, MenuType: 2, Code: "Menu",Icon:"documentation",OperateType:"none"}
-			models.Create(&menuModel)
-			InitMenu(menuModel)
-			menuModel = sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/role", Name: "角色管理", Sequence: 30, MenuType: 2, Code: "Role",Icon:"tree",OperateType:"none"}
+			menuModel = sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/menu", Name: "菜单管理", Sequence: 20, MenuType: 2, Code: "Menu", Icon: "documentation", OperateType: "none"}
 			models.Create(&menuModel)
 			InitMenu(menuModel)
-			menuModel = sys.Menu{Status: 1, ParentID: menuModel.ID, URL: "/role/setrole", Name: "分配角色菜单", Sequence: 6, MenuType: 3, Code: "RoleSetrolemenu",Icon:"",OperateType:"setrolemenu"}
-			models.Create(&menuModel)
-			menuModel = sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/admins", Name: "后台用户管理", Sequence: 40, MenuType: 2, Code: "Admins",Icon:"user",OperateType:"none"}
+			menuModel = sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/role", Name: "角色管理", Sequence: 30, MenuType: 2, Code: "Role", Icon: "tree", OperateType: "none"}
 			models.Create(&menuModel)
 			InitMenu(menuModel)
-			menuModel = sys.Menu{Status: 1, ParentID: menuModel.ID, URL: "/admins/setrole", Name: "分配角色", Sequence: 6, MenuType: 3, Code: "AdminsSetrole",Icon:"",OperateType:"setadminrole"}
+			menuModel = sys.Menu{Status: 1, ParentID: menuModel.ID, URL: "/role/setrole", Name: "分配角色菜单", Sequence: 6, MenuType: 3, Code: "RoleSetrolemenu", Icon: "", OperateType: "setrolemenu"}
 			models.Create(&menuModel)
-			
-			menuData, _= getAllMenu()
+			menuModel = sys.Menu{Status: 1, ParentID: menuModelSys.ID, URL: "/admins", Name: "用户管理", Sequence: 40, MenuType: 2, Code: "Admins", Icon: "user", OperateType: "none"}
+			models.Create(&menuModel)
+			InitMenu(menuModel)
+			menuModel = sys.Menu{Status: 1, ParentID: menuModel.ID, URL: "/admins/setrole", Name: "分配角色", Sequence: 6, MenuType: 3, Code: "AdminsSetrole", Icon: "", OperateType: "setadminrole"}
+			models.Create(&menuModel)
+
+			menuData, _ = getAllMenu()
 		}
 	} else {
 		menuData, err = getMenusByAdminsid(userID)
@@ -246,9 +255,9 @@ func (User) Info(c *gin.Context) {
 	}
 	var menus []MenuModel
 	if len(menuData) > 0 {
-		var topmenuid uint64=menuData[0].ParentID
-		if topmenuid==0{
-			topmenuid=menuData[0].ID
+		var topmenuid uint64 = menuData[0].ParentID
+		if topmenuid == 0 {
+			topmenuid = menuData[0].ID
 		}
 		menus = setMenu(menuData, topmenuid)
 	}
@@ -399,7 +408,6 @@ func setMenuUp(menuMapAll map[uint64]sys.Menu, menuid uint64, menuMap map[uint64
 	}
 }
 
-
 // 用户修改密码
 func (User) EditPwd(c *gin.Context) {
 	// 用户ID
@@ -409,34 +417,42 @@ func (User) EditPwd(c *gin.Context) {
 		return
 	}
 	userID := convert.ToUint64(uid)
-	reqData:=make(map[string]string)
+	reqData := make(map[string]string)
 	err := c.Bind(&reqData)
 	if err != nil {
 		common.ResErrSrv(c, err)
 		return
 	}
-	old_password:=reqData["old_password"]
-	old_password = hash.Md5String(common.MD5_PREFIX + old_password)
-	new_password:=reqData["new_password"]
-	if len(new_password)<6 || len(new_password)>20 {
-		common.ResFail(c, "密码长度在 6 到 20 个字符")
-		return
-	}
-	new_password = hash.Md5String(common.MD5_PREFIX + new_password)
-	where := sys.Admins{}
-	where.ID = userID
-	modelOld := sys.Admins{}
-	_, err = models.First(&where, &modelOld)
+	user := sys.Admins{}
+	notFound, err := models.FirstByID(&user, int(userID))
 	if err != nil {
 		common.ResErrSrv(c, err)
 		return
 	}
-	if old_password !=modelOld.Password{
+	if notFound {
+		common.ResFail(c, "无此用户,请确认")
+		return
+	}
+	modelOld := user
+
+	oldPassword := reqData["old_password"]
+	oldPassword = hash.Md5String(user.Salt + oldPassword)
+	if oldPassword != user.Password {
 		common.ResFail(c, "原密码输入不正确")
 		return
 	}
-	modelNew:=sys.Admins{Password:new_password}
-	err = models.Updates(&modelOld, &modelNew)
+
+	newPassword := reqData["new_password"]
+	if len(newPassword) < 6 || len(newPassword) > 20 {
+		common.ResFail(c, "密码长度在 6 到 20 个字符")
+		return
+	}
+	user.Salt = random.RandString(8)
+	newPassword = hash.Md5String(user.Salt + newPassword)
+	user.ID = userID
+	user.Password = newPassword
+
+	err = models.Updates(&modelOld, &user)
 	if err != nil {
 		common.ResFail(c, "操作失败")
 		return
