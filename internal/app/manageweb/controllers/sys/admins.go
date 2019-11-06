@@ -50,6 +50,12 @@ func (Admins) List(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
+
+	size := len(list)
+	for i := 0; i < size; i++ {
+		list[i].Password = ""
+		list[i].Salt = ""
+	}
 	common.ResSuccessPage(c, total, &list)
 }
 
@@ -65,6 +71,7 @@ func (Admins) Detail(c *gin.Context) {
 		return
 	}
 	model.Password = ""
+	model.Salt = ""
 	common.ResSuccess(c, &model)
 }
 

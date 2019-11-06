@@ -143,33 +143,6 @@ func (User) Info2(c *gin.Context) {
 		Children:  []MenuModel{menu01Children01, menu01Children0102}}
 	menus = append(menus, menu01)
 
-	//文章
-	menu01Children01 = MenuModel{
-		Path:      "create",
-		Component: "example_create",
-		Name:      "CreateArticle",
-		Children:  []MenuModel{},
-		Meta:      MenuMeta{Title: "添加文章", Icon: "edit", NoCache: false}}
-	menu01Children02 := MenuModel{
-		Path:      "list",
-		Component: "example_list",
-		Name:      "ArticleList",
-		Children:  []MenuModel{},
-		Meta:      MenuMeta{Title: "文章列表", Icon: "list", NoCache: false}}
-	menu01Children03 := MenuModel{
-		Path:      "edit/:id",
-		Component: "example_edit",
-		Name:      "ArticleEdit",
-		Hidden:    true,
-		Children:  []MenuModel{},
-		Meta:      MenuMeta{Title: "文章编辑", Icon: "edit", NoCache: false}}
-	menu01 = MenuModel{
-		Path:      "/example",
-		Component: "Layout",
-		Name:      "Article",
-		Meta:      MenuMeta{Title: "文章", Icon: "example", NoCache: true},
-		Children:  []MenuModel{menu01Children01, menu01Children02, menu01Children03}}
-	menus = append(menus, menu01)
 	type LoginModelData struct {
 		Menus        []MenuModel `json:"menus"`
 		Roles        []string    `json:"roles22"`

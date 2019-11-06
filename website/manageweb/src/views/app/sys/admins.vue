@@ -92,6 +92,11 @@
           <span>{{ scope.row.real_name }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="证件号码" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.cert_num }}</span>
+        </template>
+      </el-table-column>
       <el-table-column label="邮箱" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.email }}</span>
@@ -112,6 +117,17 @@
           <span>{{ scope.row.status | statusFilter }}</span>
         </template>
       </el-table-column>
+      <el-table-column label="备注" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.tip }}</span>
+        </template>
+      </el-table-column>
+      <el-table-column label="创建时间" align="center">
+        <template slot-scope="scope">
+          <span>{{ scope.row.created_at }}</span>
+        </template>
+      </el-table-column>
+
       <el-table-column
         label="操作"
         align="center"

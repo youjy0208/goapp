@@ -22,6 +22,7 @@ type Admins struct {
 	Sex       string    `gorm:"column:sex;type:tinyint(1);" json:"sex" form:"sex"`                                                     // 性别
 	Phone     string    `gorm:"column:phone;type:char(20);" json:"phone" form:"phone"`                                                 // 手机号
 	Email     string    `gorm:"column:email;size:64;" json:"email" form:"email"`                                                       // 邮箱
+	Tip       string    `gorm:"column:tip;size:128;" json:"tip" form:"tip"`                                                            //备注
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null;" json:"created_at" form:"created_at"`                         // 创建时间
 	UpdatedAt time.Time `gorm:"column:updated_at;type:datetime;not null;" json:"updated_at" form:"updated_at"`                         // 更新时间
 }
@@ -34,7 +35,6 @@ func (Admins) TableName() string {
 // 添加前
 func (m *Admins) BeforeCreate(scope *gorm.Scope) error {
 	m.CreatedAt = time.Now()
-	m.UpdatedAt = time.Now()
 	return nil
 }
 
