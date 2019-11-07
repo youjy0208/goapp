@@ -24,7 +24,7 @@ func Updates(where interface{}, value interface{}) error {
 // Delete
 func DeleteByModel(model interface{}) (count int64, err error) {
 	db := db.DB.Delete(model)
-	err = db.Error
+		err = db.Error
 	if err != nil {
 		return
 	}
@@ -95,9 +95,13 @@ func Find(where interface{}, out interface{}, orders ...string) error {
 }
 
 //Count
-func Count(model interface{}) int64 {
-	db := db.DB.Count(model)
-	return db.RowsAffected
+func Count(model, where interface{}) (int, error) {
+	var size int
+	err := db.DB.Model(model).Where(where).Count(&size).Error
+	if err != nil {
+		return 0, err
+	}
+	return size, nil
 }
 
 // Scan
@@ -128,8 +132,7 @@ func GetPage(model, where interface{}, out interface{}, pageIndex, pageSize uint
 			if wo.Order != "" {
 				db = db.Order(wo.Order)
 			}
-			if wo.Where != "" {
-				db = db.Where(wo.Where, wo.Value...)
+			db = db.Where(wo.Where, wo.Value...)
 			}
 		}
 	}

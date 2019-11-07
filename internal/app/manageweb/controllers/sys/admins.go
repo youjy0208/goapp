@@ -3,7 +3,6 @@ package sys
 import (
 	"github.com/it234/goapp/internal/app/manageweb/controllers/common"
 	models "github.com/it234/goapp/internal/pkg/models/common"
-	"github.com/it234/goapp/internal/pkg/models/db"
 	"github.com/it234/goapp/internal/pkg/models/sys"
 	"github.com/it234/goapp/pkg/hash"
 	"github.com/it234/goapp/pkg/random"
@@ -107,8 +106,8 @@ func (Admins) Create(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
-	var count int
-	if err := db.DB.Model(sys.Admins{}).Where(&sys.Admins{UserName: model.UserName}).Count(&count).Error; err != nil {
+	count, err := models.Count(sys.Admins{}, &sys.Admins{UserName: model.UserName})
+	if err != nil {
 		common.ResFail(c, "操作失败!")
 		return
 	}
