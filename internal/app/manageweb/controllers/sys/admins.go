@@ -3,6 +3,7 @@ package sys
 import (
 	"github.com/it234/goapp/internal/app/manageweb/controllers/common"
 	models "github.com/it234/goapp/internal/pkg/models/common"
+	"github.com/it234/goapp/internal/pkg/models/db"
 	"github.com/it234/goapp/internal/pkg/models/sys"
 	"github.com/it234/goapp/pkg/hash"
 	"github.com/it234/goapp/pkg/random"
@@ -50,11 +51,9 @@ func (Admins) List(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
-
 	size := len(list)
 	for i := 0; i < size; i++ {
 		list[i].Password = ""
-		list[i].Salt = ""
 	}
 	common.ResSuccessPage(c, total, &list)
 }
@@ -71,7 +70,6 @@ func (Admins) Detail(c *gin.Context) {
 		return
 	}
 	model.Password = ""
-	model.Salt = ""
 	common.ResSuccess(c, &model)
 }
 
@@ -109,12 +107,20 @@ func (Admins) Create(c *gin.Context) {
 		common.ResErrSrv(c, err)
 		return
 	}
+	var count int
+	if err := db.DB.Model(sys.Admins{}).Where(&sys.Admins{UserName: model.UserName}).Count(&count).Error; err != nil {
+		common.ResFail(c, "操作失败!")
+		return
+	}
+	if count > 0 {
+		common.ResFail(c, "账号已存在!")
+		return
+	}
 	model.Salt = random.RandString(8)
 	model.Status = 1
 	model.Password = hash.Md5String(model.Salt + model.Password)
-	err = models.Create(&model)
-	if err != nil {
-		common.ResFail(c, "操作失败")
+	if err := models.Create(&model); err != nil {
+		common.ResFail(c, "操作失败!")
 		return
 	}
 	common.ResSuccess(c, gin.H{"id": model.ID})

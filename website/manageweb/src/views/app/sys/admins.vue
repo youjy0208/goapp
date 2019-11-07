@@ -81,18 +81,29 @@
       @sort-change="sortChange"
       @selection-change="handleSelectionChange"
     >
-      <el-table-column type="selection" width="55" />
-      <el-table-column label="用户名" align="center">
+      <el-table-column type="selection" width="35" />
+      <el-table-column label="账号" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.user_name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="真实姓名" align="center">
+      <el-table-column label="姓名" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.real_name }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="证件号码" align="center">
+      <el-table-column
+        label="性别"
+        prop="sex"
+        sortable="custom"
+        align="center"
+      >
+        <template slot-scope="scope">
+          <span>{{ scope.row.sex | sexFilter }}</span>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="证件号" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.cert_num }}</span>
         </template>
@@ -102,7 +113,7 @@
           <span>{{ scope.row.email }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="手机" align="center">
+      <el-table-column label="手机号" align="center">
         <template slot-scope="scope">
           <span>{{ scope.row.phone }}</span>
         </template>
@@ -117,14 +128,9 @@
           <span>{{ scope.row.status | statusFilter }}</span>
         </template>
       </el-table-column>
-      <el-table-column label="备注" align="center">
-        <template slot-scope="scope">
-          <span>{{ scope.row.tip }}</span>
-        </template>
-      </el-table-column>
       <el-table-column label="创建时间" align="center">
         <template slot-scope="scope">
-          <span>{{ scope.row.created_at }}</span>
+          <span>{{ scope.row.created_at | timeFilter }}</span>
         </template>
       </el-table-column>
 
@@ -320,6 +326,18 @@ export default {
         3: '暂停使用'
       }
       return statusMap[status]
+    },
+    sexFilter(sex) {
+      const sexMap = {
+        0: '男',
+        1: '女'
+      }
+      return sexMap[sex]
+    },
+    timeFilter(time) {
+      var date = new Date(time).toJSON()
+      var newDate = new Date(+new Date(date) + 8 * 3600 * 1000).toISOString().replace(/T/g, ' ').replace(/\.[\d]{3}Z/, '')
+      return newDate
     }
   },
   data() {
